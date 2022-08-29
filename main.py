@@ -5,11 +5,11 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QGridLayout,
     QLabel,
-    QWidget
+    QWidget,
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QPixmap, QPixmapCache
-from pathlib import Path, PurePath
+from pathlib import Path
 
 class MainWindow(QMainWindow):
 
@@ -26,17 +26,20 @@ class MainWindow(QMainWindow):
         self.animating_label.setPixmap(QPixmap(self.images_path.__str__() + "/clock01.png"))
 
         self.pixmapcache_keys: [str] = []
-
+        self.pixmaps: [QPixmap] = []
+        self.pixmap_current_index = -1
         self.load_images()
-        test = QPixmapCache.find("clock02")
-        self.animating_label.setPixmap(test)
-        # self.animating_label.setPixmap(QPixmapCache.find("clock03"))
-        pass
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.advance)
+        frames_per_second = 40
+        self.refresh_interval = int(1000/frames_per_second)
+        self.timer.start(self.refresh_interval)
 
     def load_images(self):
         image_suffixes = ['.jpg', '.png', '.gif', '.bmp']
         imgs_found_count = 0
-        for filepath in self.images_path.iterdir():
+        for filepath in sorted(self.images_path.iterdir()):
             if filepath.suffix in image_suffixes:
                 imgs_found_count += 1
                 cache_key = filepath.stem
@@ -46,11 +49,21 @@ class MainWindow(QMainWindow):
                     pixmap = QPixmap(filepath.__str__())
                     QPixmapCache.insert(cache_key, pixmap)
 
+                qpixmap = (QPixmap(filepath.__str__()))
+                self.pixmaps.append(qpixmap)
                 print("pixmap %s" % cache_key, QPixmapCache.find(cache_key))
 
 
         print(imgs_found_count, "image(s) found in animation_set directory.", len(self.pixmapcache_keys),
               "keys loaded into QPixmapCache")
+
+    def advance(self):
+        if self.pixmap_current_index >= len(self.pixmaps):
+            self.pixmap_current_index = 0
+        else:
+            self.pixmap_current_index += 1
+        self.animating_label.setPixmap(self.pixmaps[self.pixmap_current_index])
+        self.timer.start(self.refresh_interval)
 
 app = QApplication(sys.argv)
 
