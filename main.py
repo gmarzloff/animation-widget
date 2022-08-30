@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
     QHBoxLayout,
+    QVBoxLayout,
     QLabel,
     QWidget,
     QSlider
@@ -20,13 +21,20 @@ class MainWindow(QMainWindow):
         self.animating_label.pixmap().size().setWidth(200)
         self.animating_label.pixmap().size().setHeight(200)
 
+        self.frame_rate_label = QLabel('0')
+
         rate_slider = QSlider()
-        rate_slider.setMinimum(0)
-        rate_slider.setMaximum(20)
+        rate_slider.setMinimum(1)
+        rate_slider.setMaximum(50)
         rate_slider.setContentsMargins(120, 120, 120, 120)
+        rate_slider.valueChanged.connect(self.slider_changed)
+
+        self.left_layout = QVBoxLayout()
+        self.left_layout.addWidget(self.frame_rate_label)
+        self.left_layout.addWidget(rate_slider)
 
         self.layout = QHBoxLayout()
-        self.layout.addWidget(rate_slider)
+        self.layout.addLayout(self.left_layout)
         self.layout.addWidget(self.animating_label)
 
         widget = QWidget()
@@ -45,6 +53,7 @@ class MainWindow(QMainWindow):
         self.timer = QTimer()
         self.timer.timeout.connect(self.advance)
         frames_per_second = 40
+        rate_slider.setValue(frames_per_second)
         self.refresh_interval = int(1000/frames_per_second)
         self.timer.start(self.refresh_interval)
 
@@ -70,6 +79,11 @@ class MainWindow(QMainWindow):
             self.pixmap_current_index += 1
         self.animating_label.setPixmap(self.pixmaps[self.pixmap_current_index])
         self.timer.start(self.refresh_interval)
+
+    def slider_changed(self):
+        new_frame_rate = self.sender().value()
+        self.frame_rate_label.setText("%s fps" % str(new_frame_rate))
+        self.refresh_interval = int(1000/new_frame_rate)
 
 app = QApplication(sys.argv)
 
