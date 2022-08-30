@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.images_path = parent_path / 'images/animation_set/'
         self.animating_label.setPixmap(QPixmap(self.images_path.__str__() + "/clock01.png"))
 
-        self.pixmapcache_keys: [str] = []
+        self.animation_keys: [str] = []
         self.pixmaps: [QPixmap] = []
         self.pixmap_current_index = -1
         self.load_images()
@@ -43,22 +43,16 @@ class MainWindow(QMainWindow):
             if filepath.suffix in image_suffixes:
                 imgs_found_count += 1
                 cache_key = filepath.stem
-                self.pixmapcache_keys.append(cache_key)
+                self.animation_keys.append(cache_key)
 
-                if not QPixmapCache.find(cache_key):
-                    pixmap = QPixmap(filepath.__str__())
-                    QPixmapCache.insert(cache_key, pixmap)
-
-                qpixmap = (QPixmap(filepath.__str__()))
+                qpixmap = QPixmap(filepath.__str__())
                 self.pixmaps.append(qpixmap)
-                print("pixmap %s" % cache_key, QPixmapCache.find(cache_key))
 
-
-        print(imgs_found_count, "image(s) found in animation_set directory.", len(self.pixmapcache_keys),
+        print(imgs_found_count, "image(s) found in animation_set directory.", len(self.animation_keys),
               "keys loaded into QPixmapCache")
 
     def advance(self):
-        if self.pixmap_current_index >= len(self.pixmaps):
+        if self.pixmap_current_index >= len(self.pixmaps) - 1:
             self.pixmap_current_index = 0
         else:
             self.pixmap_current_index += 1
