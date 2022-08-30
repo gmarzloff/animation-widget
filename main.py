@@ -2,10 +2,10 @@ import sys
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
-    QPushButton,
-    QGridLayout,
+    QHBoxLayout,
     QLabel,
     QWidget,
+    QSlider
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QPixmap, QPixmapCache
@@ -19,7 +19,19 @@ class MainWindow(QMainWindow):
         self.animating_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         self.animating_label.pixmap().size().setWidth(200)
         self.animating_label.pixmap().size().setHeight(200)
-        self.setCentralWidget(self.animating_label)
+
+        rate_slider = QSlider()
+        rate_slider.setMinimum(0)
+        rate_slider.setMaximum(20)
+        rate_slider.setContentsMargins(120, 120, 120, 120)
+
+        self.layout = QHBoxLayout()
+        self.layout.addWidget(rate_slider)
+        self.layout.addWidget(self.animating_label)
+
+        widget = QWidget()
+        widget.setLayout(self.layout)
+        self.setCentralWidget(widget)
 
         parent_path = Path(__file__).parent
         self.images_path = parent_path / 'images/animation_set/'
