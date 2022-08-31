@@ -9,17 +9,17 @@ from PyQt6.QtWidgets import (
     QSlider
 )
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QPixmap
 from pathlib import Path
+from AnimationWidget import AnimationWidget
 
 class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.animating_label = QLabel('animation here')
-        self.animating_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-        self.animating_label.pixmap().size().setWidth(200)
-        self.animating_label.pixmap().size().setHeight(200)
+
+        parent_path = Path(__file__).parent
+        images_path = parent_path / 'images/animation_set/'
+        self.animation_widget = AnimationWidget(images_path)
 
         self.frame_rate_label = QLabel('0')
         self.frame_rate_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -40,42 +40,21 @@ class MainWindow(QMainWindow):
 
         main_layout = QHBoxLayout()
         main_layout.addLayout(left_layout)
-        main_layout.addWidget(self.animating_label)
+        main_layout.addWidget(self.animation_widget)
 
         widget = QWidget()
         widget.setLayout(main_layout)
         self.setCentralWidget(widget)
 
-        parent_path = Path(__file__).parent
-        self.images_path = parent_path / 'images/animation_set/'
-        self.animating_label.setPixmap(QPixmap(self.images_path.__str__() + "/clock01.png"))
-
-        self.pixmaps: [QPixmap] = []
-        self.pixmap_current_index = -1
-        self.load_images()
-
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.advance)
         frames_per_second = 40
         rate_slider.setValue(frames_per_second)
         self.refresh_interval = int(1000/frames_per_second)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.animation_handler)
         self.timer.start(self.refresh_interval)
 
-    def load_images(self):
-        image_suffixes = ['.jpg', '.png', '.gif', '.bmp']
-        imgs_found_count = 0
-        for filepath in sorted(self.images_path.iterdir()):
-            if filepath.suffix in image_suffixes:
-                imgs_found_count += 1
-                qpixmap = QPixmap(filepath.__str__())
-                self.pixmaps.append(qpixmap)
-
-    def advance(self):
-        if self.pixmap_current_index >= len(self.pixmaps) - 1:
-            self.pixmap_current_index = 0
-        else:
-            self.pixmap_current_index += 1
-        self.animating_label.setPixmap(self.pixmaps[self.pixmap_current_index])
+    def animation_handler(self):
+        self.animation_widget.advance()
         self.timer.start(self.refresh_interval)
 
     def slider_changed(self):
